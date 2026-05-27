@@ -38,7 +38,8 @@ All data is stored locally on the machine — no internet required.
 
 ## Screenshots
 
-*Coming soon*
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
 
 ---
 
@@ -49,4 +50,4 @@ Statistics & Information Management Student
 Maputo, Mozambique
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/bruno-dias-antónio-sabão-598733235)
-📧 brunodiassabao@gmail.com
+brunodiassabao@gmail.com
