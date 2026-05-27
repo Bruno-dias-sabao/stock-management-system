@@ -15,7 +15,7 @@
   "author": "Mabataria",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^31.0.0",
+    "electron": "^42.2.0",
     "electron-packager": "^17.1.2"
   },
   "dependencies": {}
