@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MABATARIA - Gestão Profissional</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; overflow: hidden; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+        .app-container { display: flex; height: 100vh; }
+        .sidebar { width: 250px; background: #1e2a3e; color: #fff; display: flex; flex-direction: column; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+        .logo { padding: 25px 20px; text-align: center; border-bottom: 1px solid #2d3e55; }
+        .logo h1 { font-size: 22px; font-weight: 700; color: #fff; }
+        .logo p { font-size: 10px; opacity: 0.7; margin-top: 5px; }
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 10px 20px; margin: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #b0c4de; transition: all 0.2s; }
+        .nav-item:hover { background: #2d3e55; color: #fff; }
+        .nav-item.active { background: #2c5a2e; color: #fff; }
+        .main-content { flex: 1; overflow-y: auto; padding: 20px 25px; background: #f5f7fa; }
+        .purchase-container { display: grid; grid-template-columns: 1fr 380px; gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .purchase-left { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .page-title { font-size: 24px; font-weight: 700; color: #1e2a3e; margin-bottom: 5px; }
+        .page-subtitle { color: #6c757d; font-size: 13px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e9ecef; }
+        .materials-title { font-size: 15px; font-weight: 600; color: #1e2a3e; margin-bottom: 12px; }
+        .materials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .material-btn { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .material-btn:hover { border-color: #2c5a2e; background: #e8f0e8; }
+        .material-btn.selected { background: #2c5a2e; border-color: #2c5a2e; color: white; }
+        .material-name { font-size: 13px; font-weight: 600; }
+        .material-price { font-size: 11px; font-weight: 500; margin-top: 3px; }
+        .material-btn.selected .material-price { color: #ffd966; }
+        .quantity-area { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .quantity-label { display: block; font-weight: 600; color: #1e2a3e; margin-bottom: 10px; font-size: 13px; }
+        .quantity-group { display: flex; gap: 10px; align-items: center; }
+        .quantity-input { width: 120px; padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; text-align: center; }
+        .btn-add { background: #2c5a2e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .cart-section { margin-top: 20px; }
+        .cart-title { font-weight: 600; color: #1e2a3e; margin-bottom: 12px; font-size: 14px; }
+        .cart-table { width: 100%; border-collapse: collapse; }
+        .cart-table th { text-align: left; padding: 10px 8px; background: #f8f9fa; font-size: 12px; font-weight: 600; border-bottom: 2px solid #e9ecef; }
+        .cart-table td { padding: 10px 8px; border-bottom: 1px solid #e9ecef; font-size: 13px; }
+        .delete-item { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 16px; padding: 4px 6px; transition: transform 0.1s; }
+        .delete-item:hover { transform: scale(1.2); }
+        .empty-cart { text-align: center; padding: 30px; color: #adb5bd; }
+        .total-box { background: linear-gradient(135deg, #1e2a3e 0%, #2c3e50 100%); color: white; border-radius: 14px; padding: 20px; text-align: center; margin-top: 20px; }
+        .total-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        .total-value { font-size: 36px; font-weight: 800; margin-top: 8px; color: #ffd966; }
+        .troco-area { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-top: 20px; border: 1px solid #e9ecef; }
+        .troco-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .troco-label { font-weight: 600; color: #1e2a3e; }
+        .troco-input { width: 150px; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; text-align: right; font-size: 14px; }
+        .troco-valor { font-weight: 700; font-size: 18px; color: #28a745; }
+        .troco-aviso { font-size: 10px; color: #6c757d; text-align: center; margin-top: 8px; }
+        .receipt-preview { background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 20px; }
+        .receipt-title { text-align: center; font-weight: 700; font-size: 14px; color: #1e2a3e; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #2c5a2e; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-print { flex: 1; background: #2c5a2e; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-save-pdf { flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .dashboard-title { font-size: 22px; font-weight: 700; color: #1e2a3e; margin-bottom: 8px; }
+        .dashboard-subtitle { color: #6c757d; margin-bottom: 25px; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 25px; }
+        .stat-card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #2c5a2e; }
+        .stat-card h3 { font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card .value { font-size: 24px; font-weight: 800; color: #1e2a3e; }
+        .stock-table { background: #fff; border-radius: 12px; overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .stock-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .stock-table th, .stock-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef; }
+        .stock-table th { background: #f8f9fa; font-weight: 700; border-bottom: 2px solid #dee2e6; }
+        .period-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .period-btn { padding: 6px 18px; background: #fff; border: 1px solid #dee2e6; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .period-btn.active { background: #2c5a2e; color: #fff; }
+        .settings-box { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .settings-group { margin-bottom: 15px; }
+        .settings-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; }
+        .settings-group input, .settings-group select { width: 100%; max-width: 320px; padding: 8px 10px; border: 1px solid #dee2e6; border-radius: 6px; }
+        .btn-save { background: #2c5a2e; color: white; border: none; padding: 10px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 12px; padding: 20px; max-width: 450px; width: 90%; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10000;
+        }
+        .toast {
+            background: #1e2a3e;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-weight: 600;
+            min-width: 200px;
+            animation: slideIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo"><h1>MABATARIA</h1><p>GESTÃO PROFISSIONAL</p></div>
+            <div class="nav-menu">
+                <div class="nav-item active" data-page="dashboard">Painel</div>
+                <div class="nav-item" data-page="purchase">Ficha de Compra</div>
+                <div class="nav-item" data-page="stock">Controle de Estoque</div>
+                <div class="nav-item" data-page="debts">Dívidas</div>
+                <div class="nav-item" data-page="reports">Relatórios</div>
+                <div class="nav-item" data-page="prices">Preços do Dia</div>
+                <div class="nav-item" data-page="settings">Configurações</div>
+            </div>
+        </div>
+        <div class="main-content" id="mainContent"></div>
+    </div>
+
+    <script>
+        // ==================== DADOS GLOBAIS ====================
+        let inventory = JSON.parse(localStorage.getItem('mabataria_inventory')) || [];
+        let transactions = JSON.parse(localStorage.getItem('mabataria_transactions')) || [];
+        let settings = JSON.parse(localStorage.getItem('mabataria_settings')) || {
+            companyName: 'MABATARIA',
+            companyContact: '+258 84 000 0000',
+            footerText: 'Obrigado pela preferência!'
+        };
+        let debts = JSON.parse(localStorage.getItem('mabataria_debts')) || [];
+
+        function saveDebts() { localStorage.setItem('mabataria_debts', JSON.stringify(debts)); }
+
+        let priceList = JSON.parse(localStorage.getItem('mabataria_prices')) || [
+            { name: 'ALUMÍNIO', price: 7.50, category: 'Não Ferroso', stable: true },
+            { name: 'BRONZE', price: 22.00, category: 'Não Ferroso', stable: true },
+            { name: 'BATERIA', price: 4.20, category: 'Baterias', stable: true },
+            { name: 'LATA', price: 6.00, category: 'Ferroso', stable: true },
+            { name: 'LATÃO', price: 18.50, category: 'Não Ferroso', stable: true },
+            { name: 'CHUMBO', price: 8.20, category: 'Não Ferroso', stable: true },
+            { name: 'BRINZA', price: 9.50, category: 'Não Ferroso', stable: true },
+            { name: 'CHIMBA', price: 8.20, category: 'Ferroso', stable: true },
+            { name: 'TAMBORIL', price: 12.00, category: 'Ferroso', stable: true },
+            { name: 'FERRO', price: 1.10, category: 'Ferroso', stable: true },
+            { name: 'MAMPARA', price: 12.00, category: 'Ferroso', stable: true }
+        ];
+
+        let materials = {};
+        function updateMaterialsFromPrices() {
+            materials = {};
+            priceList.forEach(p => { materials[p.name] = p.price; });
+        }
+
+        let currentCart = [];
+        let currentClientName = '';
+        let currentPeriod = 'month';
+        let reportStartDate = new Date();
+        reportStartDate.setDate(1);
+        let reportEndDate = new Date();
+
+        function formatMoney(value) { return value.toFixed(2).replace('.', ',') + ' MT'; }
+        function getCartTotal() { return currentCart.reduce((s, i) => s + i.total, 0); }
+
+        // ==================== ALERTA NÃO BLOQUEANTE ====================
+        function mostrarAlerta(mensagem) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = mensagem;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        window.alert = mostrarAlerta;
+
+        // ==================== NAVEGAÇÃO ====================
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+                loadPage(page);
+            });
+        });
+
+        function loadPage(page) {
+            const content = document.getElementById('mainContent');
+            if (!content) return;
+            if (page === 'dashboard') content.innerHTML = renderDashboard();
+            else if (page === 'purchase') { content.innerHTML = renderPurchase(); attachPurchaseEvents(); updateReceiptPreview(); }
+            else if (page === 'stock') { content.innerHTML = renderStock(); attachStockEvents(); }
+            else if (page === 'reports') { content.innerHTML = renderReports(); attachReportEvents(); }
+            else if (page === 'prices') { content.innerHTML = renderPrices(); attachPricesEvents(); }
+            else if (page === 'debts') { content.innerHTML = renderDebts(); attachDebtsEvents(); }
+            else if (page === 'settings') { content.innerHTML = renderSettings(); attachSettingsEvents(); }
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard() {
+            const today = new Date().toDateString();
+            const todayTrans = transactions.filter(t => new Date(t.date).toDateString() === today);
+            const totalHoje = todayTrans.reduce((s, t) => s + t.total, 0);
+            const volumeHoje = todayTrans.reduce((s, t) => s + t.totalQuantity, 0);
+            const valorEstoque = inventory.reduce((s, i) => s + (i.stock * i.price), 0);
+            
+            // Cálculo do Ranking de Melhores Clientes (Top 5 por KG)
+            const clientTotals = {};
+            transactions.forEach(t => {
+                const name = (t.clientName || 'Geral').toUpperCase();
+                if (!clientTotals[name]) clientTotals[name] = 0;
+                clientTotals[name] += t.totalQuantity || 0;
+            });
+
+            const topClients = Object.entries(clientTotals)
+                .map(([name, totalKG]) => ({ name, totalKG }))
+                .sort((a, b) => b.totalKG - a.totalKG)
+                .slice(0, 5);
+
+            setTimeout(renderWeeklyChart, 100); // Renderiza o gráfico após o HTML carregar
+
+            return `
+                <div>
+                    <h1 class="dashboard-title">Visão Geral do Painel</h1>
+                    <p class="dashboard-subtitle">Acompanhe o desempenho da Mabataria em tempo real.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card"><h3>TOTAL COMPRAS DO DIA</h3><div class="value">${formatMoney(totalHoje)}</div><div class="small">${new Date().toLocaleDateString('pt-PT')}</div></div>
+                        <div class="stat-card"><h3>VOLUME TOTAL (KG)</h3><div class="value">${volumeHoje.toFixed(2)} kg</div><div class="small">Processado hoje</div></div>
+                        <div class="stat-card"><h3>Real</h3><div class="value">${todayTrans.length}</div><div class="small">Compras realizadas</div></div>
+                        <div class="stat-card"><h3>VALOR EM ESTOQUE</h3><div class="value">${formatMoney(valorEstoque)}</div><div class="small">Estoque total</div></div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px; margin-top: 20px;">
+                        <div style="background:#fff; border-radius:16px; padding:25px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom:20px; color:#1e2a3e;">Desempenho de Compras (Últimos 7 Dias)</h3>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div style="background:#fff; border-radius:16px; padding:25px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom:20px; color:#1e2a3e;">Top 5 Clientes (Volume KG)</h3>
+                            <div class="stock-table">
+                                <table style="width:100%; font-size: 12px;">
+                                    <thead>
+                                        <tr style="text-align: left;">
+                                            <th style="padding: 8px;">POS</th>
+                                            <th style="padding: 8px;">NOME</th>
+                                            <th style="padding: 8px; text-align: right;">TOTAL KG</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${topClients.length === 0 ? '<tr><td colspan="3" style="text-align:center; padding:20px;">Sem dados</td></tr>' : topClients.map((c, i) => `
+                                            <tr style="border-bottom: 1px solid #eee;">
+                                                <td style="padding: 10px 8px; font-weight: bold; color: #2c5a2e;">#${i + 1}</td>
+                                                <td style="padding: 10px 8px; font-weight: 600;">${c.name}</td>
+                                                <td style="padding: 10px 8px; text-align: right; font-weight: 700;">${c.totalKG.toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart');
+            if (!ctx) return;
+
+            const last7Days = [...Array(7)].map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                return d.toDateString();
+            }).reverse();
+
+            const data = last7Days.map(dateStr => {
+                return transactions
+                    .filter(t => new Date(t.date).toDateString() === dateStr)
+                    .reduce((sum, t) => sum + t.total, 0);
+            });
+
+            const labels = last7Days.map(dateStr => {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric' });
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Comprado (MT)',
+                        data: data,
+                        backgroundColor: '#2c5a2e',
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: true, color: '#f0f2f5' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ==================== FICHA DE COMPRA ====================
+        function renderPurchase() {
+            return `
+                <div class="purchase-container">
+                    <div class="purchase-left">
+                        <h1 class="page-title">Ficha de Compra</h1>
+                        <p class="page-subtitle">Registro de entrada de materiais e faturamento</p>
+                        <div class="materials-title">Materiais Disponíveis</div>
+                        <div class="materials-grid" id="materialsGrid">
+                            ${Object.entries(materials).map(([name, price]) => `
+                                <div class="material-btn" data-material="${name}">
+                                    <div class="material-name">${name}</div>
+                                    <div class="material-price">${price.toFixed(2).replace('.', ',')} MT</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="quantity-area" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label class="quantity-label">Nome do Cliente (Opcional)</label>
+                                <input type="text" id="clientNameInput" class="quantity-input" style="width: 100%; text-align: left;" placeholder="Ex: João Silva">
+                            </div>
+                            <div style="flex: 0 0 auto;">
+                                <label class="quantity-label">Quantidade (KG)</label>
+                                <div class="quantity-group">
+                                    <input type="number" id="quantityInput" class="quantity-input" placeholder="0,00" step="0.01">
+                                    <button class="btn-add" id="addToCartBtn">+ Adicionar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="cart-section">
+                            <div class="cart-title">Itens Adicionados</div>
+                            <table class="cart-table">
+                                <thead> <th>ITEM</th><th>KG</th><th>TOTAL</th><th></th> </thead>
+                                <tbody id="cartBody"> <td colspan="4" class="empty-cart">Nenhum item adicionado<\/td> </tbody>
+                              <\/table>
+                        </div>
+                        <div class="total-box">
+                            <div class="total-label">SUBTOTAL</div>
+                            <div class="total-value" id="subtotalAmount" style="font-size: 20px;">0,00 MT</div>
+                        </div>
+                        <div id="debtAbateSection" style="display:none; background:#fff3cd; padding:15px; border-radius:12px; margin-top:10px; border:1px solid #ffeeba;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <strong style="color:#856404;">⚠️ CLIENTE DEVEDOR</strong>
+                                    <div id="debtInfoText" style="font-size:12px; color:#856404;">Dívida total: 0,00 MT</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <label style="font-size:11px; display:block;">Abater da dívida (MT):</label>
+                                    <input type="number" id="debtAbateInput" value="0" step="0.01" style="width:100px; padding:5px; border-radius:5px; border:1px solid #856404;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="total-box" style="margin-top:10px; background:#2c5a2e;">
+                            <div class="total-label" style="color:#fff;">TOTAL A PAGAR AO CLIENTE</div>
+                            <div class="total-value" id="totalAmount" style="color:#fff;">0,00 MT</div>
+                        </div>
+                    </div>
+                    
+                        <div class="receipt-preview">
+                            <div class="receipt-title">PRÉ-VISUALIZAÇÃO DO RECIBO</div>
+                            <div id="receiptDisplay" style="background: #fefef7; border: 1px solid #e0e4e8; border-radius: 12px; padding: 15px; min-height: 400px;">
+                                <div style="text-align: center; color: #999; padding: 40px 20px;">Adicione itens para visualizar o recibo</div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn-print" id="finalizeBtn">FINALIZAR E IMPRIMIR</button>
+                                <button class="btn-save-pdf" id="savePdfBtn">SALVAR PDF</button>
+                            </div>
+                            <button id="viewLastReceiptBtn" style="width: 100%; margin-top: 10px; background: #6c757d; color: white; border: none; padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 600;">👁 VER ÚLTIMO RECIBO</button>
+                        </div>
+                </div>
+            `;
+        }
+
+        let atualizando = false;
+        let timeoutAtualizacao = null;
+
+        function updateCartUI() {
+            if (atualizando) return;
+            atualizando = true;
+            
+            const tbody = document.getElementById('cartBody');
+            const subtotalSpan = document.getElementById('subtotalAmount');
+            const totalSpan = document.getElementById('totalAmount');
+            const debtSection = document.getElementById('debtAbateSection');
+            const debtInfo = document.getElementById('debtInfoText');
+            const debtInput = document.getElementById('debtAbateInput');
+            
+            const subtotal = getCartTotal();
+            
+            // Verificar se o cliente atual é devedor
+            const clientDebt = debts.find(d => d.client.toUpperCase() === currentClientName.toUpperCase() && d.status === 'Pendente');
+            
+            if (clientDebt && currentCart.length > 0) {
+                if (debtSection) debtSection.style.display = 'block';
+                if (debtInfo) debtInfo.innerText = `Dívida total: ${formatMoney(clientDebt.amount)}`;
+                
+                // Se for a primeira vez que detectamos a dívida neste carrinho, sugerimos abater o menor valor entre subtotal e dívida
+                if (debtInput && debtInput.value == "0") {
+                    const suggestedAbate = Math.min(subtotal, clientDebt.amount);
+                    debtInput.value = suggestedAbate.toFixed(2);
+                    debtInput.max = clientDebt.amount;
+                }
+            } else {
+                if (debtSection) debtSection.style.display = 'none';
+                if (debtInput) debtInput.value = "0";
+            }
+
+            const abate = debtInput ? parseFloat(debtInput.value) || 0 : 0;
+            const finalTotal = Math.max(0, subtotal - abate);
+            
+            if (tbody) {
+                if (currentCart.length === 0) {
+                    tbody.innerHTML = '<td colspan="4" class="empty-cart">Nenhum item adicionado<\/td>';
+                } else {
+                    tbody.innerHTML = currentCart.map((item, idx) => `
+                        <tr>
+                            <td><strong>${item.material}</strong><\/td>
+                            <td>${item.qty.toFixed(2)}<\/td>
+                            <td><strong style="color:#2c5a2e;">${item.total.toFixed(2).replace('.', ',')} MT<\/strong><\/td>
+                            <td><button class="delete-item" data-idx="${idx}">✖<\/button><\/td>
+                        <\/tr>
+                    `).join('');
+                    
+                    document.querySelectorAll('.delete-item').forEach(btn => {
+                        btn.removeEventListener('click', handleDeleteItem);
+                        btn.addEventListener('click', handleDeleteItem);
+                    });
+                }
+            }
+            if (subtotalSpan) subtotalSpan.innerHTML = `${subtotal.toFixed(2).replace('.', ',')} MT`;
+            if (totalSpan) totalSpan.innerHTML = `${finalTotal.toFixed(2).replace('.', ',')} MT`;
+            
+            document.querySelectorAll('.material-btn').forEach(btn => {
+                const name = btn.dataset.material;
+                if (currentCart.some(i => i.material === name)) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            
+            if (timeoutAtualizacao) clearTimeout(timeoutAtualizacao);
+            timeoutAtualizacao = setTimeout(() => {
+                updateReceiptPreview();
+                atualizando = false;
+            }, 10);
+        }
+
+        function handleDeleteItem(e) {
+            e.preventDefault();
+            const idx = parseInt(e.target.dataset.idx);
+            if (!isNaN(idx)) {
+                currentCart.splice(idx, 1);
+                updateCartUI();
+            }
+        }
+
+        function updateReceiptPreview() {
+            const receiptDiv = document.getElementById('receiptDisplay');
+            if (!receiptDiv) return;
+            const total = getCartTotal();
+            const clientNameInput = document.getElementById('clientNameInput');
+            
+            // Se o carrinho estiver vazio, o nome do cliente pode ser editado
+            if (currentCart.length === 0) {
+                if (clientNameInput) clientNameInput.disabled = false;
+                currentClientName = clientNameInput?.value || '';
+            } else {
+                // Se houver itens, bloqueamos a edição do nome até limpar o carrinho
+                if (clientNameInput) {
+                    clientNameInput.value = currentClientName;
+                    clientNameInput.disabled = true;
+                }
+            }
+
+            if (currentCart.length === 0) {
+                receiptDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 40px 20px;">Adicione itens para visualizar o recibo<\/div>';
+                return;
+            }
+            const date = new Date();
+            const dataFormatada = date.toLocaleDateString('pt-PT');
+            const horaFormatada = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+            receiptDiv.innerHTML = `
+                <div style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; font-weight: bold; color: #000;">
+                    <div style="text-align: center; border-bottom: 1px solid #2c5a2e; padding-bottom: 8px; margin-bottom: 8px;">
+                        ${settings.companyLogo ? `<div style="margin-bottom:10px;"><img src="${settings.companyLogo}" style="max-height:60px; max-width:100%; object-fit:contain;"></div>` : ''}
+                        <div style="font-size: 15px; color: #1e2a3e;">${settings.companyName}</div>
+                        <div style="font-size: 11px; color: #2c5a2e;">RECIBO DE COMPRA</div>
+                        <div style="font-size: 10px; color: #000; font-weight: bold;">${dataFormatada} | ${horaFormatada}</div>
+                        <div style="font-size: 9px; color: #000; font-weight: bold;">${settings.companyContact}<\/div>
+                    <\/div>
+                    <div style="margin: 8px 0;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px dotted #ccc; margin-bottom: 5px;">
+                            <span style="width: 110px; text-align: left;">ITEM<\/span>
+                            <span style="width: 60px; text-align: right;">KG<\/span>
+                            <span style="width: 80px; text-align: right;">MT<\/span>
+                        <\/div>
+                        ${currentCart.map(item => `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="width: 110px; text-align: left;">${item.material.substring(0, 12)}<\/span>
+                                <span style="width: 60px; text-align: right;">${item.qty.toFixed(2)}<\/span>
+                                <span style="width: 80px; text-align: right; font-weight: bold; color: #2c5a2e;">${item.total.toFixed(2).replace('.', ',')}<\/span>
+                            <\/div>
+                        `).join('')}
+                    <\/div>
+                    <div style="border-top: 1px solid #2c5a2e; margin: 8px 0; padding-top: 6px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;"><span>TOTAL A PAGAR<\/span><span style="color: #2c5a2e;">${total.toFixed(2).replace('.', ',')} MT<\/span><\/div>
+                        ${currentClientName ? `<div style="font-size: 11px; color: #1e2a3e; margin-top: 8px; border-top: 1px dotted #ccc; padding-top: 5px;">CLIENTE: ${currentClientName.toUpperCase()}</div>` : ''}
+                    <\/div>
+                    <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
+                        <div style="font-size: 9px;">${settings.footerText}<\/div>
+                        <div style="font-size: 9px;">Volte Sempre!<\/div>
+                    <\/div>
+                <\/div>
+            `;
+        }
+
+        function addToCartFunction() {
+            const qtyInput = document.getElementById('quantityInput');
+            if (!qtyInput) return;
+            let qty = parseFloat(qtyInput.value) || 0; // Aceita zero ou vazio como 0
+            
+            const selected = document.querySelector('.material-btn.selected');
+            if (!selected) { mostrarAlerta('⚠️ Selecione um material'); return; }
+            const name = selected.dataset.material;
+            const price = materials[name];
+            const existing = currentCart.find(i => i.material === name);
+            if (existing) { 
+                existing.qty += qty; 
+                existing.total = existing.qty * price; 
+            }
+            else { 
+                currentCart.push({ material: name, qty: qty, price: price, total: qty * price }); 
+            }
+            updateCartUI();
+            qtyInput.value = '';
+            qtyInput.focus();
+        }
+
+        function generateFullReceipt(transaction) {
+            const date = new Date(transaction.date);
+            const dataFormatada = date.toLocaleDateString('pt-PT');
+            const horaFormatada = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+            return `
+                <div style="font-family: 'Courier New', monospace; width: 280px; margin: 0 auto; font-size: 11px; font-weight: bold; color: #000; line-height: 1.4;">
+                    <div style="text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px;">
+                        ${settings.companyLogo ? `<div style="margin-bottom:10px;"><img src="${settings.companyLogo}" style="max-height:80px; max-width:100%; object-fit:contain;"></div>` : ''}
+                        <div style="font-size: 14px;">${settings.companyName}</div>
+                        <div style="font-size: 10px;">RECIBO ELETRÔNICO</div>
+                        <div style="font-size: 10px; font-weight: bold;">${dataFormatada} | ${horaFormatada}</div>
+                        <div style="font-size: 10px; font-weight: bold;">${settings.companyContact}</div>
+                    </div>
+                    <div style="margin: 8px 0;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #000; margin-bottom: 5px;">
+                            <span style="flex: 2; text-align: left;">ITEM</span>
+                            <span style="flex: 1; text-align: right;">KG</span>
+                            <span style="flex: 1.5; text-align: right;">VALOR</span>
+                        </div>
+                        ${transaction.items.map(i => `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                <span style="flex: 2; text-align: left;">${i.material.substring(0, 12)}</span>
+                                <span style="flex: 1; text-align: right;">${i.qty.toFixed(2)}</span>
+                                <span style="flex: 1.5; text-align: right;">${i.total.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px;"><span>TOTAL A PAGAR</span><span>${transaction.total.toFixed(2).replace('.', ',')} MT</span></div>
+                        ${transaction.clientName ? `<div style="font-size: 11px; margin-top: 8px; border-top: 1px dotted #000; padding-top: 5px;">CLIENTE: ${transaction.clientName.toUpperCase()}</div>` : ''}
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; font-weight: normal; font-size: 9px;">
+                        <div>${settings.footerText}</div>
+                        <div>Volte Sempre!</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function printReceipt(html) {
+            const win = window.open('', '_blank', 'width=960,height=800');
+            win.document.write(`<html><head><title>Recibo - ${settings.companyName}</title><style>body{font-family:'Courier New',monospace;display:flex;justify-content:center;padding:20px;margin:0;} @media print{body{padding:0;margin:0;}}</style></head><body>${html}<script>setTimeout(()=>{window.print();setTimeout(()=>window.close(),500);},200);<\/script></body></html>`);
+            win.document.close();
+        }
+
+        function salvarPDF(transaction) {
+            const date = new Date(transaction.date);
+            const dataFormatada = date.toLocaleDateString('pt-PT').replace(/\//g, '-');
+            const horaFormatada = date.toLocaleTimeString('pt-PT').replace(/:/g, '-');
+            const nomeArquivo = `recibo_${settings.companyName}_${dataFormatada}_${horaFormatada}.pdf`;
+            const receiptHTML = generateFullReceipt(transaction);
+            const printWindow = window.open('', '_blank', 'width=960,height=800');
+            printWindow.document.write(`<html><head><title>${nomeArquivo}</title><style>body{font-family:'Courier New',monospace;display:flex;justify-content:center;padding:20px;}</style></head><body>${receiptHTML}<script>setTimeout(()=>{window.print();setTimeout(()=>window.close(),500);},200);<\/script></body></html>`);
+            printWindow.document.close();
+        }
+
+        function finalizePurchase() {
+            if (currentCart.length === 0) { mostrarAlerta('⚠️ Adicione items à lista'); return; }
+            const subtotal = getCartTotal();
+            const clientNameInput = document.getElementById('clientNameInput');
+            const debtInput = document.getElementById('debtAbateInput');
+            const abate = debtInput ? parseFloat(debtInput.value) || 0 : 0;
+            const finalTotal = Math.max(0, subtotal - abate);
+
+            const transaction = {
+                id: Date.now(), 
+                date: new Date().toISOString(), 
+                clientName: currentClientName,
+                items: [...currentCart], 
+                subtotal: subtotal,
+                debtAbate: abate,
+                total: finalTotal,
+                totalQuantity: currentCart.reduce((s, i) => s + i.qty, 0), 
+                amountPaid: finalTotal, 
+                change: 0
+            };
+
+            // Atualizar dívida se houver abate
+            if (abate > 0) {
+                const clientDebt = debts.find(d => d.client.toUpperCase() === currentClientName.toUpperCase() && d.status === 'Pendente');
+                if (clientDebt) {
+                    clientDebt.amount -= abate;
+                    if (clientDebt.amount <= 0) {
+                        clientDebt.amount = 0;
+                        clientDebt.status = 'Liquidada';
+                    }
+                    saveDebts();
+                }
+            }
+
+            transactions.unshift(transaction);
+            localStorage.setItem('mabataria_transactions', JSON.stringify(transactions));
+            currentCart.forEach(item => {
+                const existing = inventory.find(i => i.material === item.material);
+                if (existing) existing.stock += item.qty;
+                else inventory.push({ material: item.material, category: 'Metal', stock: item.qty, price: item.price });
+            });
+            localStorage.setItem('mabataria_inventory', JSON.stringify(inventory));
+            
+            // Imprime o recibo
+            printReceipt(generateFullReceipt(transaction));
+            
+            // Limpa o carrinho, nome do cliente e a pré-visualização
+            currentCart = [];
+            currentClientName = '';
+            if (clientNameInput) {
+                clientNameInput.value = '';
+                clientNameInput.disabled = false;
+            }
+            if (debtInput) debtInput.value = "0";
+            updateCartUI();
+            
+            mostrarAlerta(`✅ Compra registrada!\nTotal a pagar ao cliente: ${finalTotal.toFixed(2).replace('.', ',')} MT`);
+        }
+
+        async function salvarReciboPDF() {
+            if (currentCart.length === 0) { mostrarAlerta('⚠️ Adicione items à lista'); return; }
+            const subtotal = getCartTotal();
+            const debtInput = document.getElementById('debtAbateInput');
+            const abate = debtInput ? parseFloat(debtInput.value) || 0 : 0;
+            const finalTotal = Math.max(0, subtotal - abate);
+
+            const transaction = {
+                id: Date.now(), 
+                date: new Date().toISOString(), 
+                clientName: currentClientName, 
+                items: [...currentCart], 
+                subtotal: subtotal,
+                debtAbate: abate,
+                total: finalTotal,
+                totalQuantity: currentCart.reduce((s, i) => s + i.qty, 0), 
+                amountPaid: finalTotal, 
+                change: 0
+            };
+            
+            if (window.electronAPI) {
+                const html = generateFullReceipt(transaction);
+                const result = await window.electronAPI.saveFile(html, `Recibo_${currentClientName || 'Cliente'}_${new Date().toISOString().slice(0,10)}.pdf`, 'pdf');
+                if (result.success) {
+                    mostrarAlerta('✅ Recibo salvo com sucesso!');
+                    
+                    // Atualizar dívida se houver abate
+                    if (abate > 0) {
+                        const clientDebt = debts.find(d => d.client.toUpperCase() === currentClientName.toUpperCase() && d.status === 'Pendente');
+                        if (clientDebt) {
+                            clientDebt.amount -= abate;
+                            if (clientDebt.amount <= 0) {
+                                clientDebt.amount = 0;
+                                clientDebt.status = 'Liquidada';
+                            }
+                            saveDebts();
+                        }
+                    }
+
+                    // Limpar após salvar
+                    currentCart = [];
+                    currentClientName = '';
+                    const clientNameInput = document.getElementById('clientNameInput');
+                    if (clientNameInput) {
+                        clientNameInput.value = '';
+                        clientNameInput.disabled = false;
+                    }
+                    if (debtInput) debtInput.value = "0";
+                    updateCartUI();
+                } else if (result.cancelled) {
+                    mostrarAlerta('ℹ️ Operação cancelada.');
+                }
+            } else {
+                salvarPDF(transaction);
+                // Limpar após salvar PDF também, conforme pedido
+                currentCart = [];
+                currentClientName = '';
+                const clientNameInput = document.getElementById('clientNameInput');
+                if (clientNameInput) {
+                    clientNameInput.value = '';
+                    clientNameInput.disabled = false;
+                }
+                updateCartUI();
+            }
+        }
+
+        function viewLastReceipt() {
+            if (transactions.length === 0) {
+                mostrarAlerta('⚠️ Nenhuma transação encontrada.');
+                return;
+            }
+            const lastTransaction = transactions[0];
+            if (window.electronAPI) window.electronAPI.printReceipt(generateFullReceipt(lastTransaction));
+            else printReceipt(generateFullReceipt(lastTransaction));
+            mostrarAlerta('👁 Visualizando último recibo registrado.');
+        }
+
+        function viewTransaction(id) {
+            const t = transactions.find(item => item.id == id);
+            if (!t) return;
+            
+            if (document.getElementById('transactionModal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'transactionModal';
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:3000;';
+            
+            let itemsHtml = t.items.map((item, idx) => `
+                <div class="edit-item-row" data-idx="${idx}" style="display:flex; gap:10px; margin-bottom:10px; padding:10px; background:#f8f9fa; border-radius:8px;">
+                    <span style="flex:2; font-weight:bold;">${item.material}</span>
+                    <input type="number" step="0.01" class="edit-qty" value="${item.qty}" style="flex:1; padding:5px;">
+                    <span style="flex:1; text-align:right;">${formatMoney(item.total)}</span>
+                </div>
+            `).join('');
+
+            modal.innerHTML = `
+                <div style="background:white; border-radius:16px; width:90%; max-width:600px; padding:25px;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #2c5a2e; padding-bottom:10px; margin-bottom:15px;">
+                        <h2>Detalhes da Compra</h2>
+                        <button id="closeTransModalBtn" style="background:none; border:none; font-size:28px; cursor:pointer;">&times;</button>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <strong>Cliente:</strong> ${(t.clientName || 'Geral').toUpperCase()}<br>
+                        <strong>Data:</strong> ${new Date(t.date).toLocaleString('pt-PT')}
+                    </div>
+                    <div id="editItemsList" style="max-height:300px; overflow-y:auto; margin-bottom:15px;">
+                        ${itemsHtml}
+                    </div>
+                    <div style="text-align:right; font-size:18px; font-weight:bold; margin-bottom:20px; color:#2c5a2e;">
+                        Total: <span id="modalTotalDisplay">${formatMoney(t.total)}</span>
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button id="reprintTransBtn" class="btn-save" style="background:#1e2a3e;">Reimprimir</button>
+                        <button id="saveEditTransBtn" class="btn-save">Salvar Alterações</button>
+                        <button id="cancelTransBtn" class="btn-save" style="background:#6c757d;">Fechar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const updateModalTotal = () => {
+                let newTotal = 0;
+                modal.querySelectorAll('.edit-item-row').forEach(row => {
+                    const idx = row.dataset.idx;
+                    const qty = parseFloat(row.querySelector('.edit-qty').value) || 0;
+                    newTotal += qty * t.items[idx].price;
+                });
+                document.getElementById('modalTotalDisplay').innerText = formatMoney(newTotal);
+            };
+
+            modal.querySelectorAll('.edit-qty').forEach(input => {
+                input.oninput = updateModalTotal;
+            });
+
+            modal.querySelector('#closeTransModalBtn').onclick = () => modal.remove();
+            modal.querySelector('#cancelTransBtn').onclick = () => modal.remove();
+            
+            modal.querySelector('#reprintTransBtn').onclick = () => {
+                if (window.electronAPI) window.electronAPI.printReceipt(generateFullReceipt(t));
+                else printReceipt(generateFullReceipt(t));
+            };
+
+            modal.querySelector('#saveEditTransBtn').onclick = () => {
+                modal.querySelectorAll('.edit-item-row').forEach(row => {
+                    const idx = row.dataset.idx;
+                    const qty = parseFloat(row.querySelector('.edit-qty').value) || 0;
+                    
+                    // Ajustar estoque (reverter antigo e adicionar novo)
+                    const matName = t.items[idx].material;
+                    const invItem = inventory.find(i => i.material === matName);
+                    if (invItem) {
+                        invItem.stock = invItem.stock - t.items[idx].qty + qty;
+                    }
+
+                    t.items[idx].qty = qty;
+                    t.items[idx].total = qty * t.items[idx].price;
+                });
+                
+                t.total = t.items.reduce((s, i) => s + i.total, 0);
+                t.totalQuantity = t.items.reduce((s, i) => s + i.qty, 0);
+                
+                localStorage.setItem('mabataria_transactions', JSON.stringify(transactions));
+                localStorage.setItem('mabataria_inventory', JSON.stringify(inventory));
+                
+                mostrarAlerta('✅ Transação atualizada e estoque ajustado!');
+                modal.remove();
+                loadPage('reports');
+            };
+        }
+
+        function handleMaterialClick(e) {
+            const btn = e.target.closest('.material-btn');
+            if (!btn) return;
+            e.preventDefault();
+            document.querySelectorAll('.material-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function handleAddClick(e) { e.preventDefault(); addToCartFunction(); }
+        function handleQuantityKeypress(e) { if (e.key === 'Enter') { e.preventDefault(); addToCartFunction(); } }
+        function handleFinalizeClick(e) { e.preventDefault(); finalizePurchase(); }
+        function handleSavePdfClick(e) { e.preventDefault(); salvarReciboPDF(); }
+
+        function attachPurchaseEvents() {
+            const materialsGrid = document.getElementById('materialsGrid');
+            if (materialsGrid) {
+                materialsGrid.removeEventListener('click', handleMaterialClick);
+                materialsGrid.addEventListener('click', handleMaterialClick);
+            }
+            const addBtn = document.getElementById('addToCartBtn');
+            if (addBtn) { addBtn.onclick = handleAddClick; }
+            const quantityInput = document.getElementById('quantityInput');
+            if (quantityInput) { quantityInput.onkeypress = handleQuantityKeypress; }
+            const clientNameInput = document.getElementById('clientNameInput');
+            if (clientNameInput) { 
+                clientNameInput.oninput = () => {
+                    updateReceiptPreview();
+                    updateCartUI(); // Re-verifica dívida ao digitar nome
+                }; 
+            }
+            const debtAbateInput = document.getElementById('debtAbateInput');
+            if (debtAbateInput) {
+                debtAbateInput.oninput = () => {
+                    updateCartUI();
+                    updateReceiptPreview();
+                };
+            }
+            const finalizeBtn = document.getElementById('finalizeBtn');
+            if (finalizeBtn) { finalizeBtn.onclick = handleFinalizeClick; }
+            const savePdfBtn = document.getElementById('savePdfBtn');
+            if (savePdfBtn) { savePdfBtn.onclick = handleSavePdfClick; }
+            const viewLastReceiptBtn = document.getElementById('viewLastReceiptBtn');
+            if (viewLastReceiptBtn) { viewLastReceiptBtn.onclick = viewLastReceipt; }
+        }
+
+        // ==================== ESTOQUE ====================
+        function renderStock() {
+            const totalKG = inventory.reduce((s, i) => s + i.stock, 0);
+            const totalValue = inventory.reduce((s, i) => s + (i.stock * i.price), 0);
+            return `
+                <div>
+                    <h1 class="dashboard-title">Controle de Estoque</h1>
+                    <p class="dashboard-subtitle">Monitoramento em tempo real do inventário de sucatas e metais.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div class="stat-card"><h3>Estoque total</h3><div class="value">${totalKG.toFixed(2)} KG</div><div class="small">Quantidade em quilos</div></div>
+                        <div class="stat-card"><h3>Valor Total Estimado</h3><div class="value">${formatMoney(totalValue)}</div><div class="small">Preço Local Atualizado</div></div>
+                    </div>
+                    <div class="stock-table">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead><tr style="background:#f8f9fa; border-bottom:2px solid #dee2e6;"><th style="padding:12px 15px;">MATERIAL</th><th>CATEGORIA</th><th>ESTOQUE (KG)</th><th>VALOR/KG</th><th>VALOR TOTAL</th><th>AÇÕES</th></tr></thead>
+                            <tbody>${inventory.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:50px;">Nenhum material em estoque. Realize uma compra para iniciar o inventário.</td></tr>' : inventory.map(i => `<tr><td style="padding:12px 15px;"><strong>${i.material}</strong></td><td>${i.category || 'Metal'}</td><td>${i.stock.toFixed(2)}</td><td>${i.price.toFixed(2).replace('.', ',')} MT</td><td><strong>${(i.stock * i.price).toFixed(2).replace('.', ',')} MT</strong></td><td><button class="delete-item btn-delete-stock" data-material="${i.material}">✖</button></td></tr>`).join('')}</tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top:16px;">Mostrando ${inventory.length} materiais no estoque</p>
+                </div>
+            `;
+        }
+
+        function attachStockEvents() {
+            document.querySelectorAll('.btn-delete-stock').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    const material = btn.dataset.material;
+                    // Removido confirm() para usar apenas mostrarAlerta como solicitado
+                    inventory = inventory.filter(item => item.material !== material);
+                    localStorage.setItem('mabataria_inventory', JSON.stringify(inventory));
+                    loadPage('stock');
+                    mostrarAlerta(`✅ '${material}' removido do estoque.`);
+                });
+            });
+        }
+
+        // ==================== RELATÓRIOS ====================
+        function formatDateInput(date) { return date.toISOString().split('T')[0]; }
+
+        function renderReports() {
+            const searchTerm = document.getElementById('reportSearchInput')?.value || '';
+            let filtered = transactions.filter(t => new Date(t.date) >= reportStartDate && new Date(t.date) <= reportEndDate);
+            if (currentPeriod === 'day') filtered = transactions.filter(t => new Date(t.date).toDateString() === new Date().toDateString());
+            else if (currentPeriod === 'week') { const d = new Date(); d.setDate(d.getDate()-7); filtered = transactions.filter(t => new Date(t.date) >= d); }
+            else if (currentPeriod === 'month') { const d = new Date(); d.setMonth(d.getMonth()-1); filtered = transactions.filter(t => new Date(t.date) >= d); }
+            else if (currentPeriod === 'year') { const d = new Date(); d.setFullYear(d.getFullYear()-1); filtered = transactions.filter(t => new Date(t.date) >= d); }
+            
+            if (searchTerm) {
+                const s = searchTerm.toLowerCase();
+                filtered = filtered.filter(t => 
+                    (t.clientName || '').toLowerCase().includes(s) ||
+                    (t.items || []).some(i => i.material.toLowerCase().includes(s)) ||
+                    new Date(t.date).toLocaleString('pt-PT').toLowerCase().includes(s) ||
+                    t.total.toString().includes(s)
+                );
+            }
+            const totalVolume = filtered.reduce((s, t) => s + t.totalQuantity, 0);
+            const totalValue = filtered.reduce((s, t) => s + t.total, 0);
+            const materialStats = {};
+            filtered.forEach(t => {
+                const items = Array.isArray(t.items) ? t.items : [];
+                items.forEach(i => { 
+                    if (!materialStats[i.material]) materialStats[i.material] = { volume: 0, value: 0 }; 
+                    materialStats[i.material].volume += i.qty; 
+                    materialStats[i.material].value += i.total; 
+                });
+            });
+            return `
+                <div>
+                    <h1 class="dashboard-title">Relatórios Analíticos</h1>
+                    <p class="dashboard-subtitle">Visão detalhada da movimentação de sucata e desempenho financeiro.</p>
+                    <div style="background:#fff; border-radius:12px; padding:20px; margin-bottom:25px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
+                            <h3>Período de Análise</h3>
+                            <input type="text" id="reportSearchInput" placeholder="Pesquisar cliente, material ou data..." value="${searchTerm}" 
+                                style="padding:8px 15px; border-radius:20px; border:1px solid #dee2e6; width:300px; font-size:13px;">
+                        </div>
+                        <div class="period-buttons"><button class="period-btn ${currentPeriod === 'day' ? 'active' : ''}" data-period="day">Diário</button><button class="period-btn ${currentPeriod === 'week' ? 'active' : ''}" data-period="week">Semanal</button><button class="period-btn ${currentPeriod === 'month' ? 'active' : ''}" data-period="month">Mensal</button><button class="period-btn ${currentPeriod === 'year' ? 'active' : ''}" data-period="year">Anual</button><button class="period-btn ${currentPeriod === 'custom' ? 'active' : ''}" data-period="custom">Personalizado</button></div>
+                        <div id="customDateRange" style="${currentPeriod === 'custom' ? 'display:flex;' : 'display:none;'} gap:15px; margin-top:15px;"><div><label>Data Início</label><br><input type="date" id="startDateInput" value="${formatDateInput(reportStartDate)}"></div><div><label>Data Fim</label><br><input type="date" id="endDateInput" value="${formatDateInput(reportEndDate)}"></div><button id="applyDateFilterBtn" class="btn-add" style="margin-top:22px;">Aplicar</button></div>
+                        <div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:8px;"><strong>Período selecionado:</strong> ${reportStartDate.toLocaleDateString('pt-PT')} até ${reportEndDate.toLocaleDateString('pt-PT')}</div>
+                    </div>
+                    <div class="stats-grid"><div class="stat-card"><h3>Total Pago</h3><div class="value">${totalValue.toFixed(2).replace('.', ',')} MT</div></div><div class="stat-card"><h3>Total de Metais</h3><div class="value">${totalVolume.toFixed(2)} Kg</div></div><div class="stat-card"><h3>Compras no Período</h3><div class="value">${filtered.length}</div></div></div>
+                    <div style="display:flex; gap:15px; justify-content:flex-end; margin-bottom:25px;"><button id="exportPDFBtn" class="btn-save" style="background:#dc3545;">Exportar PDF</button><button id="exportExcelBtn" class="btn-save" style="background:#28a745;">Exportar Excel</button></div>
+                    <div class="stock-table"><h3 style="padding:15px;">Volume por Categoria de Metal</h3><table style="width:100%"><thead> <th>Tipo de Metal</th><th>Volume (KG)</th><th>Valor Total (MT)</th><th>Preço Médio/Kg</th> </thead><tbody>${Object.keys(materialStats).length === 0 ? '<tr><td colspan="4" style="text-align:center; padding:30px;">Nenhum dado disponível</td></tr>' : Object.entries(materialStats).map(([m, s]) => `<tr><td><strong>${m}</strong></td><td>${s.volume.toFixed(2)}</td><td>${s.value.toFixed(2).replace('.', ',')} MT</td><td>${(s.value/s.volume).toFixed(2).replace('.', ',')} MT</td></tr>`).join('')}</tbody></table></div>
+                    <div class="stock-table" style="margin-top:20px;"><h3 style="padding:15px;">Histórico Geral de Compras</h3><table style="width:100%"><thead> <th>Data</th><th>Cliente</th><th>Items</th><th>Quantidade (KG)</th><th>Total (MT)</th><th>Ações</th> </thead><tbody>${filtered.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:30px;">Nenhuma transação encontrada</td></tr>' : filtered.slice(0,50).map(t => `<tr><td>${new Date(t.date).toLocaleString('pt-PT')}</td><td><a href="#" class="client-link" data-id="${t.id}" style="color:#2c5a2e; font-weight:700; text-decoration:none;">${(t.clientName || 'Geral').toUpperCase()}</a></td><td>${(t.items || []).length} item(s)</td><td>${t.totalQuantity.toFixed(2)} kg</td><td><strong>${t.total.toFixed(2).replace('.', ',')} MT</strong></td><td><button class="delete-item btn-view-transaction" data-id="${t.id}" style="color:#1e2a3e;">👁</button></td></tr>`).join('')}</tbody></table></div>
+                </div>
+            `;
+        }
+
+        async function exportToPDF() {
+            const filtered = transactions.filter(t => new Date(t.date) >= reportStartDate && new Date(t.date) <= reportEndDate);
+            const html = `<html><head><title>Relatório MABATARIA</title><style>body{font-family:Arial;padding:30px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ddd;padding:8px;} th{background:#1e2a3e;color:white;}</style></head><body><h1>MABATARIA - Relatório Analítico</h1><p>Período: ${reportStartDate.toLocaleDateString('pt-PT')} a ${reportEndDate.toLocaleDateString('pt-PT')}</p><p>Gerado em: ${new Date().toLocaleString('pt-PT')}</p><h3>Histórico de Compras</h3><table><thead><tr><th>Data</th><th>Cliente</th><th>Items</th><th>Quantidade (KG)</th><th>Total (MT)</th></tr></thead><tbody>${filtered.map(t => `<tr><td>${new Date(t.date).toLocaleString('pt-PT')}</td><td>${(t.clientName || 'Geral').toUpperCase()}</td><td>${(t.items || []).length}</td><td>${t.totalQuantity.toFixed(2)}</td><td>${t.total.toFixed(2).replace('.', ',')} MT</td></tr>`).join('')}</tbody></table><p style="margin-top:30px;text-align:center;">MABATARIA - Gestão Profissional</p></body></html>`;
+            
+            if (window.electronAPI) {
+                mostrarAlerta('⏳ Gerando PDF e abrindo diálogo...');
+                const result = await window.electronAPI.saveFile(html, `Relatorio_Mabataria_${new Date().toISOString().slice(0,10)}.pdf`, 'pdf');
+                if (result.success) mostrarAlerta('✅ Relatório salvo com sucesso!');
+                else if (result.cancelled) mostrarAlerta('ℹ️ Operação cancelada.');
+                else mostrarAlerta('❌ Erro ao salvar relatório.');
+            } else {
+                const printWindow = window.open('', '_blank', 'width=900,height=700');
+                printWindow.document.write(html);
+                printWindow.document.close();
+                printWindow.onload = () => { printWindow.print(); };
+            }
+        }
+
+        async function exportToExcel() {
+            let filtered = transactions.filter(t => new Date(t.date) >= reportStartDate && new Date(t.date) <= reportEndDate);
+            const csvRows = [['Data', 'Cliente', 'Items', 'Quantidade (KG)', 'Total (MT)']];
+            filtered.forEach(t => csvRows.push([new Date(t.date).toLocaleString('pt-PT'), (t.clientName || 'Geral').toUpperCase(), (t.items || []).length, t.totalQuantity.toFixed(2), t.total.toFixed(2).replace('.', ',')]));
+            const content = "\uFEFF" + csvRows.map(row => row.join(',')).join('\n');
+            
+            if (window.electronAPI) {
+                const result = await window.electronAPI.saveFile(content, `Relatorio_Mabataria_${new Date().toISOString().slice(0,10)}.csv`, 'csv');
+                if (result.success) mostrarAlerta('✅ Excel salvo com sucesso!');
+                else if (result.cancelled) mostrarAlerta('ℹ️ Operação cancelada.');
+            } else {
+                const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `relatorio_mabataria_${new Date().toISOString().slice(0,19)}.csv`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                mostrarAlerta('✅ Relatório exportado!');
+            }
+        }
+
+        function attachReportEvents() {
+            document.querySelectorAll('.period-btn').forEach(btn => { btn.onclick = () => { currentPeriod = btn.dataset.period; loadPage('reports'); }; });
+            document.getElementById('applyDateFilterBtn')?.addEventListener('click', () => { const start = document.getElementById('startDateInput')?.value; const end = document.getElementById('endDateInput')?.value; if (start && end) { reportStartDate = new Date(start); reportEndDate = new Date(end); currentPeriod = 'custom'; loadPage('reports'); } });
+            document.getElementById('exportPDFBtn')?.addEventListener('click', exportToPDF);
+            document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
+            
+            // Eventos para visualizar/editar cliente
+            document.querySelectorAll('.client-link, .btn-view-transaction').forEach(el => {
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    const id = el.dataset.id;
+                    viewTransaction(id);
+                };
+            });
+
+            const searchInput = document.getElementById('reportSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    if (window.searchTimeout) clearTimeout(window.searchTimeout);
+                    window.searchTimeout = setTimeout(() => loadPage('reports'), 300);
+                });
+                searchInput.focus();
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+            }
+        }
+
+        // ==================== PREÇOS ====================
+        function renderPrices() {
+            const lastUpdate = localStorage.getItem('mabataria_last_price_update');
+            const formattedDate = lastUpdate ? new Date(lastUpdate).toLocaleString('pt-PT') : 'Não disponível';
+            return `<div><h1 class="dashboard-title">Preços do Dia</h1><p class="dashboard-subtitle">Valores de compra atualizados conforme o mercado internacional e demanda local.</p><div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">${priceList.map(item => `<div style="background:#fff; border-radius:12px; padding:15px; position:relative; box-shadow:0 1px 3px rgba(0,0,0,0.08);"><div style="position:absolute; top:10px; right:10px; background:#d4edda; padding:2px 8px; border-radius:20px; font-size:10px;">${item.stable ? 'ESTÁVEL' : 'VARIAÇÃO'}</div><h3>${item.name}</h3><div style="font-size:22px; font-weight:800; color:#2c5a2e;">${item.price.toFixed(2).replace('.', ',')} MT /kg</div><div style="font-size:11px; color:#6c757d; margin-top:8px;">Última atualização: ${formattedDate}</div></div>`).join('')}</div><div style="display:flex; gap:15px; justify-content:flex-end; margin-bottom:25px;"><button class="btn-save" id="editPricesBtn">Editar Preços</button><button class="btn-save" id="addProductBtn" style="background:#1e2a3e;">Adicionar Produto</button></div><div style="background:#e9ecef; border-radius:10px; padding:15px;"><p><strong>Preços Confirmados</strong><br>Os valores acima estão válidos para operações realizadas conforme a última atualização.</p></div></div>`;
+        }
+
+        function showPriceEditorModal() {
+            if (document.getElementById('priceEditorModal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'priceEditorModal';
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:2000;';
+            modal.innerHTML = `<div style="background:white; border-radius:16px; width:90%; max-width:900px; max-height:80vh; overflow-y:auto; padding:25px;"><div style="display:flex; justify-content:space-between; border-bottom:2px solid #2c5a2e; padding-bottom:10px;"><h2>Editar Preços</h2><button id="closePriceModalBtn" style="background:none; border:none; font-size:28px; cursor:pointer;">&times;</button></div><div id="priceEditList">${priceList.map((item, idx) => `<div class="price-row" data-idx="${idx}" style="display:flex; gap:10px; margin-bottom:10px; padding:10px; background:#f8f9fa; border-radius:8px; flex-wrap:wrap;"><input type="text" class="edit-name" value="${item.name}" style="flex:2; padding:8px;"><input type="number" step="0.01" class="edit-price" value="${item.price}" style="flex:1; padding:8px;"><select class="edit-category" style="flex:1; padding:8px;"><option ${item.category === 'Não Ferroso' ? 'selected' : ''}>Não Ferroso</option><option ${item.category === 'Ferroso' ? 'selected' : ''}>Ferroso</option><option ${item.category === 'Baterias' ? 'selected' : ''}>Baterias</option></select><select class="edit-stable" style="flex:0.8; padding:8px;"><option value="true" ${item.stable ? 'selected' : ''}>ESTÁVEL</option><option value="false" ${!item.stable ? 'selected' : ''}>VARIAÇÃO</option></select><button class="delete-price-btn" data-name="${item.name}" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Excluir</button></div>`).join('')}</div><div style="margin-top:20px; display:flex; gap:15px; justify-content:flex-end;"><button id="savePricesModalBtn" class="btn-save">Salvar</button><button id="cancelPricesModalBtn" class="btn-save" style="background:#6c757d;">Cancelar</button></div></div>`;
+            document.body.appendChild(modal);
+            
+            const closeModal = () => { modal.remove(); setTimeout(() => document.body.focus(), 50); };
+            modal.querySelector('#closePriceModalBtn').onclick = closeModal;
+            modal.querySelector('#cancelPricesModalBtn').onclick = closeModal;
+            modal.querySelectorAll('.delete-price-btn').forEach(btn => { 
+                btn.onclick = () => { 
+                    const name = btn.dataset.name; 
+                    const idx = priceList.findIndex(p => p.name === name); 
+                    if (idx !== -1) priceList.splice(idx, 1); 
+                    localStorage.setItem('mabataria_prices', JSON.stringify(priceList)); 
+                    localStorage.setItem('mabataria_last_price_update', new Date().toISOString()); 
+                    updateMaterialsFromPrices(); 
+                    closeModal(); 
+                    setTimeout(() => { 
+                        loadPage('prices'); 
+                        mostrarAlerta(`✅ '${name}' excluído com sucesso!`); 
+                    }, 50); 
+                }; 
+            });
+            modal.querySelector('#savePricesModalBtn').onclick = () => { const rows = modal.querySelectorAll('.price-row'); const newList = []; rows.forEach(row => { const name = row.querySelector('.edit-name').value.trim().toUpperCase(); const price = parseFloat(row.querySelector('.edit-price').value); const category = row.querySelector('.edit-category').value; const stable = row.querySelector('.edit-stable').value === 'true'; if (name && price > 0) newList.push({ name, price, category, stable }); }); if (newList.length > 0) { priceList.length = 0; newList.forEach(p => priceList.push(p)); localStorage.setItem('mabataria_prices', JSON.stringify(priceList)); localStorage.setItem('mabataria_last_price_update', new Date().toISOString()); updateMaterialsFromPrices(); closeModal(); setTimeout(() => { loadPage('prices'); mostrarAlerta('✅ Preços atualizados!'); }, 50); } };
+        }
+
+        function showAddProductModal() {
+            if (document.getElementById('addProductModal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'addProductModal';
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:2000;';
+            modal.innerHTML = `<div style="background:white; border-radius:16px; width:90%; max-width:450px; padding:25px;"><h2>Adicionar Produto</h2><div style="margin-bottom:15px;"><label>Nome do Metal</label><input type="text" id="newName" placeholder="Ex: COBRE"></div><div style="margin-bottom:15px;"><label>Preço (MT/kg)</label><input type="number" id="newPrice" step="0.01" placeholder="0.00"></div><div style="margin-bottom:20px;"><label>Categoria</label><select id="newCategory"><option>Não Ferroso</option><option>Ferroso</option><option>Baterias</option></select></div><div style="display:flex; gap:15px; justify-content:flex-end;"><button id="confirmAddProductBtn" class="btn-save">Adicionar</button><button id="cancelAddProductBtn" class="btn-save" style="background:#6c757d;">Cancelar</button></div></div>`;
+            document.body.appendChild(modal);
+            const closeModal = () => { modal.remove(); setTimeout(() => document.body.focus(), 50); };
+            modal.querySelector('#cancelAddProductBtn').onclick = closeModal;
+            modal.querySelector('#confirmAddProductBtn').onclick = () => { const name = modal.querySelector('#newName').value.trim().toUpperCase(); const price = parseFloat(modal.querySelector('#newPrice').value); const category = modal.querySelector('#newCategory').value; if (!name) { mostrarAlerta('⚠️ Insira o nome'); return; } if (!price || price <= 0) { mostrarAlerta('⚠️ Insira um preço válido'); return; } if (priceList.some(p => p.name === name)) { mostrarAlerta('⚠️ Produto já existe!'); return; } priceList.push({ name, price, category, stable: true }); localStorage.setItem('mabataria_prices', JSON.stringify(priceList)); localStorage.setItem('mabataria_last_price_update', new Date().toISOString()); updateMaterialsFromPrices(); closeModal(); setTimeout(() => { loadPage('prices'); mostrarAlerta(`✅ ${name} adicionado!`); }, 50); };
+        }
+
+        function attachPricesEvents() {
+            const editBtn = document.getElementById('editPricesBtn');
+            if (editBtn) editBtn.onclick = showPriceEditorModal;
+            const addBtn = document.getElementById('addProductBtn');
+            if (addBtn) addBtn.onclick = showAddProductModal;
+        }
+
+        // ==================== DÍVIDAS ====================
+        function renderDebts() {
+            const activeDebts = debts.filter(d => d.status === 'Pendente');
+            const totalDebtValue = activeDebts.reduce((s, d) => s + d.amount, 0);
+            
+            return `
+                <div>
+                    <h1 class="dashboard-title">Gestão de Dívidas</h1>
+                    <p class="dashboard-subtitle">Controle de empréstimos e adiantamentos a clientes.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                        <div class="stat-card"><h3>Total em Dívida</h3><div class="value">${formatMoney(totalDebtValue)}</div><div class="small">Valor total pendente</div></div>
+                        <div class="stat-card"><h3>Devedores Ativos</h3><div class="value">${activeDebts.length}</div><div class="small">Clientes com pendências</div></div>
+                    </div>
+
+                    <div style="background:#fff; border-radius:16px; padding:25px; margin-bottom:25px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                        <h3 style="margin-bottom:15px;">Novo Empréstimo</h3>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <input type="text" id="debtClientName" placeholder="Nome do Devedor" style="flex:2; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <input type="number" id="debtAmount" placeholder="Valor (MT)" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <input type="date" id="debtDate" value="${new Date().toISOString().split('T')[0]}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <button id="addDebtBtn" class="btn-add" style="flex:0.5;">Adicionar</button>
+                        </div>
+                    </div>
+
+                    <div class="stock-table">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead><tr style="background:#f8f9fa; border-bottom:2px solid #dee2e6;"><th style="padding:12px 15px;">CLIENTE</th><th>VALOR INICIAL</th><th>SALDO ATUAL</th><th>DATA</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+                            <tbody>${debts.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:50px;">Nenhuma dívida registrada.</td></tr>' : debts.map(d => `
+                                <tr>
+                                    <td style="padding:12px 15px;"><strong>${d.client.toUpperCase()}</strong></td>
+                                    <td>${formatMoney(d.initialAmount)}</td>
+                                    <td><strong style="color:${d.amount > 0 ? '#dc3545' : '#28a745'}">${formatMoney(d.amount)}</strong></td>
+                                    <td>${new Date(d.date).toLocaleDateString('pt-PT')}</td>
+                                    <td><span style="padding:4px 8px; border-radius:12px; font-size:10px; background:${d.status === 'Pendente' ? '#fff3cd' : '#d4edda'}; color:${d.status === 'Pendente' ? '#856404' : '#155724'}">${d.status}</span></td>
+                                    <td>
+                                        ${d.status === 'Pendente' ? `<button class="delete-item btn-liquidate-debt" data-id="${d.id}" style="color:#28a745; margin-right:10px;">L</button>` : ''}
+                                        <button class="delete-item btn-delete-debt" data-id="${d.id}">✖</button>
+                                    </td>
+                                </tr>
+                            `).join('')}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function attachDebtsEvents() {
+            document.getElementById('addDebtBtn')?.addEventListener('click', () => {
+                const client = document.getElementById('debtClientName').value.trim();
+                const amount = parseFloat(document.getElementById('debtAmount').value);
+                const date = document.getElementById('debtDate').value;
+                
+                if (client && !isNaN(amount) && amount > 0) {
+                    debts.unshift({
+                        id: Date.now(),
+                        client: client,
+                        initialAmount: amount,
+                        amount: amount,
+                        date: date,
+                        status: 'Pendente'
+                    });
+                    saveDebts();
+                    loadPage('debts');
+                    mostrarAlerta(`✅ Dívida de '${client}' registrada.`);
+                }
+            });
+
+            document.querySelectorAll('.btn-liquidate-debt').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.dataset.id;
+                    const debt = debts.find(d => d.id == id);
+                    if (debt) {
+                        debt.amount = 0;
+                        debt.status = 'Liquidada';
+                        saveDebts();
+                        loadPage('debts');
+                        mostrarAlerta(`✅ Dívida de '${debt.client}' liquidada.`);
+                    }
+                };
+            });
+
+            document.querySelectorAll('.btn-delete-debt').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.dataset.id;
+                    debts = debts.filter(d => d.id != id);
+                    saveDebts();
+                    loadPage('debts');
+                    mostrarAlerta('✅ Registro de dívida removido.');
+                };
+            });
+        }
+
+        // ==================== CONFIGURAÇÕES ====================
+        function renderSettings() {
+            return `
+                <div>
+                    <h1 class="dashboard-title">Configurações</h1>
+                    <p class="dashboard-subtitle">Personalize o comportamento do sistema e realize backups de segurança.</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                        <div class="settings-box">
+                            <h3 style="margin-bottom:20px;">Empresa e Logotipo</h3>
+                            <div class="settings-group">
+                                <label>NOME DA EMPRESA</label>
+                                <input type="text" id="companyName" value="${settings.companyName}">
+                            </div>
+                            <div class="settings-group">
+                                <label>CONTACTO</label>
+                                <input type="text" id="companyContact" value="${settings.companyContact}">
+                            </div>
+                            <div class="settings-group">
+                                <label>LOGOTIPO (URL ou Base64)</label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <input type="text" id="companyLogo" value="${settings.companyLogo || ''}" placeholder="Cole o link da imagem ou use o botão ->">
+                                    <input type="file" id="logoUpload" style="display:none;" accept="image/*">
+                                    <button class="btn-add" onclick="document.getElementById('logoUpload').click()" style="white-space:nowrap;">Subir Imagem</button>
+                                </div>
+                                ${settings.companyLogo ? `<div style="margin-top:10px;"><img src="${settings.companyLogo}" style="max-height:50px; border-radius:4px;"></div>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="settings-box">
+                            <h3 style="margin-bottom:20px;">Impressora e Recibo</h3>
+                            <div class="settings-group">
+                                <label>TAMANHO DO PAPEL</label>
+                                <select id="paperSize">
+                                    <option value="80mm" ${settings.paperSize === '80mm' ? 'selected' : ''}>80mm (Padrão)</option>
+                                    <option value="58mm" ${settings.paperSize === '58mm' ? 'selected' : ''}>58mm</option>
+                                </select>
+                            </div>
+                            <div class="settings-group">
+                                <label>RODAPÉ DO RECIBO</label>
+                                <input type="text" id="footerText" value="${settings.footerText}">
+                            </div>
+                            <div class="settings-group" style="display: flex; align-items: center; gap: 12px; margin-top: 15px;">
+                                <input type="checkbox" id="autoPrint" ${settings.autoPrint ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="autoPrint" style="cursor: pointer;">AUTO - Imprimir Recibo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-box" style="margin-bottom:25px;">
+                        <h3 style="margin-bottom:20px;">Segurança e Manutenção</h3>
+                        <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                            <button class="btn-save" id="exportBackupBtn" style="background:#1e2a3e;">Exportar Backup (JSON)</button>
+                            <button class="btn-save" id="importBackupBtn" style="background:#2c3e50;">Importar Backup</button>
+                            <input type="file" id="backupFileInput" style="display:none;" accept=".json">
+                            <button class="btn-save" id="clearAllDataBtn" style="background:#dc3545; margin-left:auto;">REINICIAR SISTEMA</button>
+                        </div>
+                        <p style="font-size:11px; color:#6c757d; margin-top:10px;">* O backup inclui todas as vendas, estoque, preços e configurações.</p>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button class="btn-save" id="saveSettingsBtn" style="padding: 12px 40px; font-size:16px;">SALVAR TODAS AS ALTERAÇÕES</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function exportBackup() {
+            const data = {
+                inventory,
+                transactions,
+                settings,
+                priceList,
+                lastUpdate: localStorage.getItem('mabataria_last_price_update')
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `backup_mabataria_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            mostrarAlerta('✅ Backup exportado com sucesso!');
+        }
+
+        function importBackup(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.inventory && data.transactions && data.settings) {
+                        localStorage.setItem('mabataria_inventory', JSON.stringify(data.inventory));
+                        localStorage.setItem('mabataria_transactions', JSON.stringify(data.transactions));
+                        localStorage.setItem('mabataria_settings', JSON.stringify(data.settings));
+                        localStorage.setItem('mabataria_prices', JSON.stringify(data.priceList || []));
+                        if (data.lastUpdate) localStorage.setItem('mabataria_last_price_update', data.lastUpdate);
+                        mostrarAlerta('✅ Dados importados! Recarregando...');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        mostrarAlerta('❌ Arquivo de backup inválido.');
+                    }
+                } catch (err) {
+                    mostrarAlerta('❌ Erro ao ler arquivo.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('companyLogo').value = event.target.result;
+                mostrarAlerta('✅ Logotipo carregado! Clique em Salvar.');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearAllData() {
+            // Limpar todos os dados do localStorage
+            localStorage.removeItem('mabataria_inventory');
+            localStorage.removeItem('mabataria_transactions');
+            localStorage.removeItem('mabataria_settings');
+            localStorage.removeItem('mabataria_prices');
+            localStorage.removeItem('mabataria_last_price_update');
+            
+            // Mostrar alerta de sucesso
+            mostrarAlerta('✅ Sistema reiniciado com sucesso! Recarregando...');
+            
+            // Recarregar a página para aplicar os padrões
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        }
+
+        function attachSettingsEvents() {
+            const saveBtn = document.getElementById('saveSettingsBtn');
+            if (saveBtn) saveBtn.onclick = () => {
+                settings.companyName = document.getElementById('companyName').value;
+                settings.companyContact = document.getElementById('companyContact').value;
+                settings.companyLogo = document.getElementById('companyLogo').value;
+                settings.paperSize = document.getElementById('paperSize').value;
+                settings.autoPrint = document.getElementById('autoPrint').checked;
+                settings.footerText = document.getElementById('footerText').value;
+                localStorage.setItem('mabataria_settings', JSON.stringify(settings));
+                mostrarAlerta('✅ Configurações salvas!');
+                loadPage('settings'); // Recarrega para mostrar o logo
+            };
+
+            document.getElementById('exportBackupBtn')?.addEventListener('click', exportBackup);
+            document.getElementById('importBackupBtn')?.addEventListener('click', () => document.getElementById('backupFileInput').click());
+            document.getElementById('backupFileInput')?.addEventListener('change', importBackup);
+            document.getElementById('logoUpload')?.addEventListener('change', handleLogoUpload);
+            document.getElementById('clearAllDataBtn')?.addEventListener('click', clearAllData);
+        }
+
+        // ==================== EVENTOS GLOBAIS ====================
+        window.onclick = (e) => { 
+            if (e.target.classList.contains('modal')) e.target.style.display = 'none'; 
+        };
+
+        updateMaterialsFromPrices();
+        loadPage('dashboard');
+    </script>
+</body>
+</html>
