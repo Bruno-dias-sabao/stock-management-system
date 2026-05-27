@@ -41,6 +41,11 @@ All data is stored locally on the machine — no internet required.
 ### Dashboard
 ![Dashboard](screenshots/dashboard.png)
 
+### Ficha de Compra
+![Ficha de Compra](screenshots/ficha-de-compra.png)
+
+### Relatórios Analíticos
+![Relatórios](screenshots/relatorios.png)
 ---
 
 ## Author
